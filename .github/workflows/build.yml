@@ -40,8 +40,9 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}:/app \
             -w /app \
+            -e BUILDOZER_ALLOW_ROOT=1 \
             kivy/buildozer \
-            buildozer -v android debug
+            buildozer android debug
 
       - name: رفع الـ APK كقطعة أثرية (Artifact)
         uses: actions/upload-artifact@v4
