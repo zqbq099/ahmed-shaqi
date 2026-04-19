@@ -1,0 +1,56 @@
+# اسم سير العمل (Workflow)
+name: Build and Test React App
+
+# المشغلات (Triggers): متى يتم تشغيل هذا الـ Workflow
+on:
+  # يتم التشغيل عند أي عملية push إلى الفرع الرئيسي (main)
+  push:
+    branches: [ "main" ]
+  # يتم التشغيل عند أي طلب سحب (Pull Request) يستهدف الفرع الرئيسي
+  pull_request:
+    branches: [ "main" ]
+
+# الوظائف (Jobs) التي سيتم تنفيذها
+jobs:
+  # تعريف وظيفة باسم "build"
+  build:
+    # تحديد نظام التشغيل الذي ستعمل عليه الوظيفة
+    runs-on: ubuntu-latest
+
+    # تحديد استراتيجية، هنا نحدد إصدار Node.js الذي سنستخدمه
+    strategy:
+      matrix:
+        node-version: [18.x] # يمكنك تغييره إلى 16.x أو 20.x حسب الحاجة
+
+    # الخطوات (Steps) التي سيتم تنفيذها بالترتيب
+    steps:
+      # 1. تحميل الكود المصدري للمشروع
+      - name: Checkout repository
+        uses: actions/checkout@v3 # استخدام الإصدار الأحدث
+
+      # 2. إعداد بيئة Node.js بالإصدار المحدد في الأعلى
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          # إضافة التخزين المؤقت (caching) لـ npm لتحسين سرعة التثبيت في المرات القادمة
+          cache: 'npm'
+
+      # 3. تثبيت الاعتماديات (Dependencies)
+      # نستخدم npm ci لأنه أسرع وأكثر أماناً في بيئات CI/CD
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. بناء المشروع (الآن ستنجح هذه الخطوة لأن react-scripts مثبتة)
+      - name: Build the project
+        run: npm run build
+
+      # 5. (اختياري) رفع مجلد البناء كـ "Artifact"
+      # هذا يسمح لك بتنزيل الملفات الناتجة عن عملية البناء من صفحة الـ Action
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          # اسم الـ Artifact الذي سيظهر في GitHub
+          name: build-files
+          # المسار الذي يحتوي على الملفات المراد رفعها
+          path: build
