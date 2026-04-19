@@ -11,7 +11,6 @@ android.permissions = INTERNET
 android.api = 30
 android.minapi = 21
 android.ndk = 23b
-# لا نحدد icon.filename حتى يستخدم الأيقونة الافتراضية
 android.arch = armeabi-v7a
 
 [buildozer]
