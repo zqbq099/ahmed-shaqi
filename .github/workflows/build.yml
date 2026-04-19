@@ -7,18 +7,47 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04   # نسخة مستقرة
     steps:
       - name: تحميل الكود
         uses: actions/checkout@v4
 
-      - name: تثبيت بايثون ومكتبة Pillow لصنع الأيقونة
+      - name: تثبيت حزم النظام الأساسية
         run: |
-          pip install Pillow
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip \
+            python3-setuptools \
+            python3-dev \
+            build-essential \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            libffi-dev \
+            libssl-dev \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            openjdk-17-jdk \
+            unzip \
+            wget \
+            libltdl-dev
 
-      - name: صنع أيقونة تلقائية (بدون الحاجة لرفع ملف)
+      - name: تثبيت Buildozer ومتطلباته
         run: |
-          python -c "
+          pip3 install --user --upgrade Cython==0.29.33
+          pip3 install --user --upgrade buildozer
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: تثبيت مكتبة Pillow لصنع الأيقونة
+        run: pip3 install --user Pillow
+
+      - name: صنع أيقونة تلقائية
+        run: |
+          python3 -c "
           from PIL import Image, ImageDraw, ImageFont
           import os
           img = Image.new('RGB', (512, 512), color=(18, 18, 18))
@@ -35,13 +64,11 @@ jobs:
           print('✅ تم إنشاء الأيقونة في assets/icon.png')
           "
 
-      - name: بناء الـ APK باستخدام صورة Docker الرسمية لـ Buildozer
+      - name: بناء الـ APK
+        env:
+          BUILDOZER_ALLOW_ROOT: 1
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/app \
-            -w /app \
-            kivy/buildozer \
-            bash -c "yes | buildozer android debug"
+          yes | buildozer android debug
 
       - name: رفع الـ APK كقطعة أثرية (Artifact)
         uses: actions/upload-artifact@v4
