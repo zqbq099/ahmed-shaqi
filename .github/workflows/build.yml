@@ -1,76 +1,26 @@
-name: بناء تطبيق أحمد شاقي APK
+name: بناء أحمد شاقي APK
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04   # نسخة مستقرة
+    runs-on: ubuntu-latest
     steps:
-      - name: تحميل الكود
-        uses: actions/checkout@v4
-
-      - name: تثبيت حزم النظام الأساسية
+      - uses: actions/checkout@v4
+      
+      - name: تثبيت Buildozer
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip \
-            python3-setuptools \
-            python3-dev \
-            build-essential \
-            git \
-            autoconf \
-            automake \
-            libtool \
-            libffi-dev \
-            libssl-dev \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libtinfo5 \
-            cmake \
-            openjdk-17-jdk \
-            unzip \
-            wget \
-            libltdl-dev
-
-      - name: تثبيت Buildozer ومتطلباته
+          pip install buildozer
+          sudo apt update
+          sudo apt install -y python3-pip python3-dev python3-setuptools git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+      
+      - name: بناء APK
         run: |
-          pip3 install --user --upgrade Cython==0.29.33
-          pip3 install --user --upgrade buildozer
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: تثبيت مكتبة Pillow لصنع الأيقونة
-        run: pip3 install --user Pillow
-
-      - name: صنع أيقونة تلقائية
-        run: |
-          python3 -c "
-          from PIL import Image, ImageDraw, ImageFont
-          import os
-          img = Image.new('RGB', (512, 512), color=(18, 18, 18))
-          draw = ImageDraw.Draw(img)
-          draw.ellipse((20, 20, 492, 492), outline=(255, 215, 0), width=15)
-          draw.ellipse((150, 150, 362, 362), outline=(255, 215, 0), width=12)
-          try:
-              font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 140)
-          except:
-              font = ImageFont.load_default()
-          draw.text((256, 220), 'A S', fill=(255, 215, 0), anchor='mm', font=font)
-          os.makedirs('assets', exist_ok=True)
-          img.save('assets/icon.png')
-          print('✅ تم إنشاء الأيقونة في assets/icon.png')
-          "
-
-      - name: بناء الـ APK
-        env:
-          BUILDOZER_ALLOW_ROOT: 1
-        run: |
-          yes | buildozer android debug
-
-      - name: رفع الـ APK كقطعة أثرية (Artifact)
+          export BUILDOZER_ALLOW_ROOT=1
+          buildozer android debug
+      
+      - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
           name: Ahmed-Shaqi-APK
