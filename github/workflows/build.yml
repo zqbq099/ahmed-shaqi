@@ -1,0 +1,25 @@
+name: بناء تطبيق أحمد شاقي APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # يسمح بتشغيل البناء يدوياً
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: تحميل الكود
+        uses: actions/checkout@v4
+
+      - name: بناء الـ APK باستخدام Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          buildozer_spec: buildozer.spec
+          command: buildozer -v android debug
+
+      - name: رفع الـ APK كقطعة أثرية (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ahmed-Shaqi-APK
+          path: bin/*.apk
