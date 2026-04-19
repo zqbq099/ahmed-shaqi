@@ -11,16 +11,16 @@ jobs:
     steps:
       - name: تحميل الكود
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: تثبيت المكتبات اللازمة لصنع الأيقونة
-        run: pip install Pillow
+      - name: تثبيت بايثون ومكتبة Pillow لصنع الأيقونة
+        run: |
+          pip install Pillow
 
-      - name: صنع أيقونة تلقائية
+      - name: صنع أيقونة تلقائية (بدون الحاجة لرفع ملف)
         run: |
           python -c "
           from PIL import Image, ImageDraw, ImageFont
+          import os
           img = Image.new('RGB', (512, 512), color=(18, 18, 18))
           draw = ImageDraw.Draw(img)
           draw.ellipse((20, 20, 492, 492), outline=(255, 215, 0), width=15)
@@ -30,16 +30,18 @@ jobs:
           except:
               font = ImageFont.load_default()
           draw.text((256, 220), 'A S', fill=(255, 215, 0), anchor='mm', font=font)
-          import os
           os.makedirs('assets', exist_ok=True)
           img.save('assets/icon.png')
+          print('✅ تم إنشاء الأيقونة في assets/icon.png')
           "
 
-      - name: بناء الـ APK باستخدام Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          buildozer_spec: buildozer.spec
-          command: buildozer -v android debug
+      - name: بناء الـ APK باستخدام صورة Docker الرسمية لـ Buildozer
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            kivy/buildozer \
+            buildozer -v android debug
 
       - name: رفع الـ APK كقطعة أثرية (Artifact)
         uses: actions/upload-artifact@v4
